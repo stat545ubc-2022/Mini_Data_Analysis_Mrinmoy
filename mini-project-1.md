@@ -1214,7 +1214,10 @@ filt_sub_apt_buildings %>%
 
 ![](mini-project-1_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
 
--   comment
+-   comment Heating systems are not different by the building age. This
+    shows, technology transiton did not affect the community adaptation
+    to heating system and ther resistance to have similar heating system
+    over the buildings’ age.
 
 #### Research Question 2: Does the air-conditioning system installed in the building related to the building age?
 
@@ -1253,7 +1256,11 @@ filt_sub_apt_buildings %>%
 
 ![](mini-project-1_files/figure-gfm/unnamed-chunk-27-1.png)<!-- -->
 
--   comment
+-   comment Central air based air conditioning systems are more common
+    in new buildings (median building age 31). The boxplot show the rise
+    of centralized cooling system installation after 1960s. Old
+    buildings were mostly installed by individual unit based cooling
+    system as they can be installed anywhere in the building.
 
 #### Research Question 3: What type of buildings are tend to have cooling-room facility?
 
@@ -1291,108 +1298,90 @@ filt_sub_apt_buildings %>%
 
 ![](mini-project-1_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
 
--   comment
+-   comment When comparing, Newer buildings are equipped with Cooling
+    room facility. Median age of the Cooling-room facilitated building
+    is 40 and 58 for cooling facility uninstalled building.
 
-#### Research Question 4:
+#### Research Question 4: Is there any evidence of relationship in heating-cooling system in the registered buildings of Toronto?
 
 -   summarizing
+
+First creating a new categorical variable called building age, based on
+the criteria
+
+1.  Age \< 40 = New
+2.  40 \< Age \< 80 = Moderate
+3.  Age \> 80 = Old
+
+``` r
+filt_sub_apt_buildings = 
+  filt_sub_apt_buildings %>% 
+  mutate(
+    # Create categories
+    age_group = dplyr::case_when(
+      building_age <= 40            ~ "New",
+      building_age > 40 & building_age <= 80 ~ "Morderate",
+      building_age > 80             ~ "Old"
+    ),
+    # Convert to factor
+    age_group = factor(
+      age_group,
+      level = c("New", "Morderate","Old")
+    )
+  )
+```
+
+Based on individual categorized data, calculating the counts of building
+falling each combinations of categorical variables.
+
+``` r
+count_data = filt_sub_apt_buildings %>% 
+  group_by(heating_type, air_conditioning, age_group) %>% 
+  summarize(Counts = n())
+```
+
+    ## `summarise()` has grouped output by 'heating_type', 'air_conditioning'. You can
+    ## override using the `.groups` argument.
+
+``` r
+count_data
+```
+
+    ## # A tibble: 25 × 4
+    ## # Groups:   heating_type, air_conditioning [9]
+    ##    heating_type   air_conditioning age_group Counts
+    ##    <fct>          <fct>            <fct>      <int>
+    ##  1 ELECTRIC       CENTRAL AIR      New            7
+    ##  2 ELECTRIC       CENTRAL AIR      Morderate      4
+    ##  3 ELECTRIC       CENTRAL AIR      Old            2
+    ##  4 ELECTRIC       INDIVIDUAL UNITS New           29
+    ##  5 ELECTRIC       INDIVIDUAL UNITS Morderate     37
+    ##  6 ELECTRIC       INDIVIDUAL UNITS Old           13
+    ##  7 ELECTRIC       NONE             New           54
+    ##  8 ELECTRIC       NONE             Morderate     93
+    ##  9 ELECTRIC       NONE             Old           22
+    ## 10 FORCED AIR GAS CENTRAL AIR      New           61
+    ## # … with 15 more rows
+
 -   graphing
--   comment
+
+Plotting multi-variate categorical data based on building age,
+heating-type and air-conditioning type.
 
 ``` r
-names(apt_buildings)
+ggballoonplot(count_data, x = "heating_type", y = "air_conditioning",
+              size="Counts", fill = "Counts", facet.by = "age_group") 
 ```
 
-    ##  [1] "id"                               "air_conditioning"                
-    ##  [3] "amenities"                        "balconies"                       
-    ##  [5] "barrier_free_accessibilty_entr"   "bike_parking"                    
-    ##  [7] "exterior_fire_escape"             "fire_alarm"                      
-    ##  [9] "garbage_chutes"                   "heating_type"                    
-    ## [11] "intercom"                         "laundry_room"                    
-    ## [13] "locker_or_storage_room"           "no_of_elevators"                 
-    ## [15] "parking_type"                     "pets_allowed"                    
-    ## [17] "prop_management_company_name"     "property_type"                   
-    ## [19] "rsn"                              "separate_gas_meters"             
-    ## [21] "separate_hydro_meters"            "separate_water_meters"           
-    ## [23] "site_address"                     "sprinkler_system"                
-    ## [25] "visitor_parking"                  "ward"                            
-    ## [27] "window_type"                      "year_built"                      
-    ## [29] "year_registered"                  "no_of_storeys"                   
-    ## [31] "emergency_power"                  "non-smoking_building"            
-    ## [33] "no_of_units"                      "no_of_accessible_parking_spaces" 
-    ## [35] "facilities_available"             "cooling_room"                    
-    ## [37] "no_barrier_free_accessible_units"
+![](mini-project-1_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
 
-``` r
-apt_buildings %>% group_by(air_conditioning) %>% 
-  summarize(n = n())
-```
+#### Comment:
 
-    ## # A tibble: 4 × 2
-    ##   air_conditioning     n
-    ##   <chr>            <int>
-    ## 1 CENTRAL AIR        211
-    ## 2 INDIVIDUAL UNITS   289
-    ## 3 NONE              2870
-    ## 4 <NA>                85
-
-``` r
-apt_buildings %>% group_by(no_of_storeys) %>% 
-  summarize(n = n()) %>% 
-  ggplot(.,aes(x = no_of_storeys, y = n))+
-  geom_bar(stat = "identity")
-```
-
-![](mini-project-1_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
-
-``` r
-apt_buildings %>% group_by(year_built) %>% 
-  summarise(n = n()) %>% 
-  ggplot(.,aes(x = year_built, y = n))+
-  geom_bar(stat = "identity")
-```
-
-    ## Warning: Removed 1 rows containing missing values (position_stack).
-
-![](mini-project-1_files/figure-gfm/unnamed-chunk-31-2.png)<!-- -->
-
-``` r
-apt_buildings %>% group_by(year_registered) %>% 
-  summarise(n = n()) %>% 
-  ggplot(.,aes(x = year_registered, y = n))+
-  geom_bar(stat = "identity")
-```
-
-    ## Warning: Removed 1 rows containing missing values (position_stack).
-
-![](mini-project-1_files/figure-gfm/unnamed-chunk-31-3.png)<!-- -->
-
-``` r
-apt_buildings %>% group_by(heating_type) %>% 
-  summarise(n = n()) %>% 
-  ggplot(.,aes(x = heating_type, y = n))+
-  geom_bar(stat = "identity")
-```
-
-![](mini-project-1_files/figure-gfm/unnamed-chunk-31-4.png)<!-- -->
-
-``` r
-apt_buildings %>% group_by(laundry_room) %>% 
-  summarise(n = n()) %>% 
-  ggplot(.,aes(x = laundry_room, y = n))+
-  geom_bar(stat = "identity")
-```
-
-![](mini-project-1_files/figure-gfm/unnamed-chunk-31-5.png)<!-- -->
-
-``` r
-apt_buildings %>% group_by(property_type) %>% 
-  summarise(n = n()) %>% 
-  ggplot(.,aes(x = property_type, y = n))+
-  geom_bar(stat = "identity")
-```
-
-![](mini-project-1_files/figure-gfm/unnamed-chunk-31-6.png)<!-- -->
+The above balloon plot shows that most of the moderately old households
+have no cooling facility but have the hot-water based heating system.
+Rest of the combinations have comparatively similar distribution. Old
+buildings are not equipped with centralized air system, as they require
+proper built guide.
 
 <!----------------------------------------------------------------------------->
 
@@ -1405,6 +1394,15 @@ refined, now that you’ve investigated your data a bit more? Which
 research questions are yielding interesting results?
 
 <!-------------------------- Start your work below ---------------------------->
+
+Based on the data analysis, I think the transion to technology in
+building’s cooling and heating system can be well answered. Several data
+filtering processes have been adopted and have been referred within the
+analysis. However it is important to note that these conclusions were
+solely based on data collected. I feel more analysis could be possible
+to incorporate statistical tests, ANOVA in concluding results with
+uncertainty estimation.
+
 <!----------------------------------------------------------------------------->
 
 ### Attribution
